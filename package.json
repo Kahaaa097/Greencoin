@@ -1,5 +1,5 @@
 {
-  "name": "greencoin-web",
+  "name": "greencoin",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,6 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.0.0",
     "vite": "^5.0.0"
   }
 }
