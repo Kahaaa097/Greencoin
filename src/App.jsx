@@ -5,6 +5,7 @@ const contractAddress = "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2";
 const backendUrl = "https://greencoin-backend-p2xm.onrender.com";
 
 function App() {
+  const [actionDescription, setActionDescription] = useState("");
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
   const [points, setPoints] = useState(null);
@@ -141,24 +142,34 @@ function App() {
         {points !== null && <p className="mt-2">You have <b>{points}</b> GRC</p>}
       </div>
 
-      <div>
-        <h2 className="font-semibold mt-4">Ghi nhận hành động</h2>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={e => setImage(e.target.files[0])}
-          className="border px-2 py-1 rounded w-full mb-2"
-        />
-        <button
-          onClick={handleImageCheck}
-          className="bg-yellow-600 text-white px-4 py-1 rounded"
-        >
-          Gửi minh chứng
-        </button>
-        {checkResult && <p className="mt-2 text-sm text-gray-700">🔎 Kết quả: {checkResult}</p>}
-      </div>
-    </div>
-  );
-}
+  <div>
+  <h2 className="font-semibold mt-4">Ghi nhận hành động</h2>
+  <input
+    type="text"
+    placeholder="Mô tả hành động (e.g. Nhặt rác ở công viên)"
+    value={actionDescription}
+    onChange={e => setActionDescription(e.target.value)}
+    className="border px-2 py-1 rounded w-full mb-2"
+  />
+  <input
+    type="file"
+    accept="image/*"
+    onChange={e => {
+      const file = e.target.files[0];
+      if (file) {
+        alert(`Bạn đã chọn ảnh: ${file.name}\nMô tả: ${actionDescription}`);
+        // Sau này gửi ảnh + mô tả đến backend
+      }
+    }}
+    className="border px-2 py-1 rounded w-full mb-2"
+  />
+  <button
+    className="bg-green-600 text-white px-4 py-1 rounded"
+    onClick={() => alert("Chức năng gửi minh chứng đang phát triển")}
+  >
+    Gửi minh chứng
+  </button>
+</div>
+
 
 export default App;
