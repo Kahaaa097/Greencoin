@@ -35,6 +35,7 @@ const contractABI = [
 ];
 
 const contractAddress = "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2";
+const backendUrl = "https://greencoin-backend-p2xm.onrender.com";
 
 function App() {
   const [account, setAccount] = useState(null);
@@ -44,8 +45,8 @@ function App() {
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
   const [actionType, setActionType] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [image, setImage] = useState(null);
+  const [checkResult, setCheckResult] = useState("");
 
   useEffect(() => {
     if (window.ethereum) {
@@ -90,14 +91,32 @@ function App() {
     setPoints(pts.toString());
   };
 
-  const handleSubmitProof = () => {
-    if (!description || !imageFile) {
-      alert("Vui lòng nhập mô tả và chọn hình ảnh.");
+  const handleImageCheck = async () => {
+    if (!image) {
+      alert("Vui lòng chọn ảnh");
       return;
     }
 
-    alert(`Mô tả: ${description}\nHình ảnh: ${imageFile.name}`);
-    // (Tương lai) Tải ảnh lên IPFS và ghi nhận trên contract
+    const formData = new FormData();
+    formData.append("image", image);
+
+    try {
+      const res = await fetch(`${backendUrl}/check-image`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      setCheckResult(data.message);
+
+      if (data.success) {
+        alert("Ảnh hợp lệ.");
+      } else {
+        alert("⚠️ Ảnh không hợp lệ: " + data.message);
+      }
+    } catch (err) {
+      alert("Lỗi khi gửi ảnh: " + err.message);
+    }
   };
 
   return (
@@ -108,7 +127,6 @@ function App() {
         {account ? `Connected: ${account.slice(0, 6)}...` : "Connect Wallet"}
       </button>
 
-      {/* Add Verifier */}
       <div>
         <h2 className="font-semibold mt-4">Add Verifier</h2>
         <input
@@ -123,7 +141,6 @@ function App() {
         </button>
       </div>
 
-      {/* Grant Points */}
       <div>
         <h2 className="font-semibold mt-4">Grant Points</h2>
         <input
@@ -152,7 +169,6 @@ function App() {
         </button>
       </div>
 
-      {/* Get My Points */}
       <div>
         <h2 className="font-semibold mt-4">Get My Points</h2>
         <button onClick={handleGetMyPoints} className="bg-gray-700 text-white px-4 py-1 rounded">
@@ -161,25 +177,21 @@ function App() {
         {points !== null && <p className="mt-2">You have <b>{points}</b> GRC</p>}
       </div>
 
-      {/* Record Action */}
       <div>
-        <h2 className="font-semibold mt-4">Ghi nhận hành động</h2>
-        <input
-          type="text"
-          placeholder="Mô tả hành động (e.g. Nhặt rác ở công viên)"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          className="border px-2 py-1 rounded w-full mb-2"
-        />
+        <h2 className="font-semibold mt-4">Upload ảnh minh chứng</h2>
         <input
           type="file"
           accept="image/*"
-          onChange={e => setImageFile(e.target.files[0])}
+          onChange={e => setImage(e.target.files[0])}
           className="border px-2 py-1 rounded w-full mb-2"
         />
-        <button onClick={handleSubmitProof} className="bg-yellow-600 text-white px-4 py-1 rounded">
-          Gửi minh chứng
+        <button
+          onClick={handleImageCheck}
+          className="bg-yellow-600 text-white px-4 py-1 rounded"
+        >
+          Gửi ảnh & xác minh
         </button>
+        {checkResult && <p className="mt-2 text-sm text-gray-700">🔎 Kết quả: {checkResult}</p>}
       </div>
     </div>
   );
