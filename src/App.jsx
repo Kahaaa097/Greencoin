@@ -1,4 +1,6 @@
 // ... (imports và ABI giữ nguyên như trước)
+import React, { useEffect, useState } from "react";
+import { ethers } from "ethers";
 const contractAddress = "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2";
 const backendUrl = "https://greencoin-backend-p2xm.onrender.com";
 
