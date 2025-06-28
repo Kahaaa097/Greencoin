@@ -44,6 +44,8 @@ function App() {
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
   const [actionType, setActionType] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
     if (window.ethereum) {
@@ -88,6 +90,16 @@ function App() {
     setPoints(pts.toString());
   };
 
+  const handleSubmitProof = () => {
+    if (!description || !imageFile) {
+      alert("Vui lòng nhập mô tả và chọn hình ảnh.");
+      return;
+    }
+
+    alert(`Mô tả: ${description}\nHình ảnh: ${imageFile.name}`);
+    // (Tương lai) Tải ảnh lên IPFS và ghi nhận trên contract
+  };
+
   return (
     <div className="p-6 max-w-xl mx-auto space-y-6 text-center">
       <h1 className="text-2xl font-bold">🌱 GreenCoin DApp</h1>
@@ -96,6 +108,7 @@ function App() {
         {account ? `Connected: ${account.slice(0, 6)}...` : "Connect Wallet"}
       </button>
 
+      {/* Add Verifier */}
       <div>
         <h2 className="font-semibold mt-4">Add Verifier</h2>
         <input
@@ -110,6 +123,7 @@ function App() {
         </button>
       </div>
 
+      {/* Grant Points */}
       <div>
         <h2 className="font-semibold mt-4">Grant Points</h2>
         <input
@@ -138,12 +152,34 @@ function App() {
         </button>
       </div>
 
+      {/* Get My Points */}
       <div>
         <h2 className="font-semibold mt-4">Get My Points</h2>
         <button onClick={handleGetMyPoints} className="bg-gray-700 text-white px-4 py-1 rounded">
           View My Points
         </button>
         {points !== null && <p className="mt-2">You have <b>{points}</b> GRC</p>}
+      </div>
+
+      {/* Record Action */}
+      <div>
+        <h2 className="font-semibold mt-4">Ghi nhận hành động</h2>
+        <input
+          type="text"
+          placeholder="Mô tả hành động (e.g. Nhặt rác ở công viên)"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          className="border px-2 py-1 rounded w-full mb-2"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={e => setImageFile(e.target.files[0])}
+          className="border px-2 py-1 rounded w-full mb-2"
+        />
+        <button onClick={handleSubmitProof} className="bg-yellow-600 text-white px-4 py-1 rounded">
+          Gửi minh chứng
+        </button>
       </div>
     </div>
   );
