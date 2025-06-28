@@ -1,26 +1,56 @@
-// ... (imports và ABI giữ nguyên như trước)
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+
+const contractABI = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [{ internalType: "address", name: "_verifier", type: "address" }],
+    name: "addVerifier",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "_to", type: "address" },
+      { internalType: "uint256", name: "_amount", type: "uint256" },
+      { internalType: "string", name: "_actionType", type: "string" },
+    ],
+    name: "grantPoints",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getMyPoints",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
 const contractAddress = "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2";
-const backendUrl = "https://greencoin-backend-p2xm.onrender.com";
 
 function App() {
-  const [actionDescription, setActionDescription] = useState("");
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
   const [points, setPoints] = useState(null);
   const [verifier, setVerifier] = useState("");
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
-  const [image, setImage] = useState(null);
-  const [checkResult, setCheckResult] = useState("");
+  const [actionType, setActionType] = useState("");
+  const [actionDescription, setActionDescription] = useState("");
 
   useEffect(() => {
     if (window.ethereum) {
       const provider = new ethers.BrowserProvider(window.ethereum);
-      provider.getSigner().then(async (signer) => {
-        const address = await signer.getAddress(); // Fix lỗi lấy account
-        setAccount(address);
+      provider.getSigner().then((signer) => {
+        setAccount(signer.address);
         const greencoin = new ethers.Contract(contractAddress, contractABI, signer);
         setContract(greencoin);
       });
@@ -46,7 +76,7 @@ function App() {
 
   const handleGrantPoints = async () => {
     try {
-      const tx = await contract.grantPoints(to, amount, ""); // Bỏ actionType
+      const tx = await contract.grantPoints(to, amount, actionType);
       await tx.wait();
       alert("Points granted!");
     } catch (err) {
@@ -55,40 +85,8 @@ function App() {
   };
 
   const handleGetMyPoints = async () => {
-    try {
-      const pts = await contract.getMyPoints();
-      setPoints(pts.toString());
-    } catch (err) {
-      alert("Error getting points: " + err.message);
-    }
-  };
-
-  const handleImageCheck = async () => {
-    if (!image) {
-      alert("Vui lòng chọn ảnh");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("image", image);
-
-    try {
-      const res = await fetch(`${backendUrl}/check-image`, {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-      setCheckResult(data.message);
-
-      if (data.success) {
-        alert("✅ Ảnh hợp lệ, bạn có thể tiếp tục gửi minh chứng.");
-      } else {
-        alert("⚠️ Ảnh không hợp lệ: " + data.message);
-      }
-    } catch (err) {
-      alert("Lỗi khi gửi ảnh: " + err.message);
-    }
+    const pts = await contract.getMyPoints();
+    setPoints(pts.toString());
   };
 
   return (
@@ -105,7 +103,7 @@ function App() {
           type="text"
           placeholder="Verifier address"
           value={verifier}
-          onChange={e => setVerifier(e.target.value)}
+          onChange={(e) => setVerifier(e.target.value)}
           className="border px-2 py-1 rounded w-full"
         />
         <button onClick={handleAddVerifier} className="mt-2 bg-blue-500 text-white px-4 py-1 rounded">
@@ -119,15 +117,22 @@ function App() {
           type="text"
           placeholder="Recipient address"
           value={to}
-          onChange={e => setTo(e.target.value)}
+          onChange={(e) => setTo(e.target.value)}
           className="border px-2 py-1 rounded w-full mb-2"
         />
         <input
           type="number"
           placeholder="Amount"
           value={amount}
-          onChange={e => setAmount(e.target.value)}
+          onChange={(e) => setAmount(e.target.value)}
           className="border px-2 py-1 rounded w-full mb-2"
+        />
+        <input
+          type="text"
+          placeholder="Action type (e.g. trồng cây)"
+          value={actionType}
+          onChange={(e) => setActionType(e.target.value)}
+          className="border px-2 py-1 rounded w-full"
         />
         <button onClick={handleGrantPoints} className="mt-2 bg-purple-600 text-white px-4 py-1 rounded">
           Grant Points
@@ -139,38 +144,43 @@ function App() {
         <button onClick={handleGetMyPoints} className="bg-gray-700 text-white px-4 py-1 rounded">
           View My Points
         </button>
-        {points !== null && <p className="mt-2">You have <b>{points}</b> GRC</p>}
+        {points !== null && (
+          <p className="mt-2">
+            You have <b>{points}</b> GRC
+          </p>
+        )}
       </div>
 
- <div>
-  <h2 className="font-semibold mt-4">Ghi nhận hành động</h2>
-  <input
-    type="text"
-    placeholder="Mô tả hành động (e.g. Nhặt rác ở công viên)"
-    value={actionDescription}
-    onChange={e => setActionDescription(e.target.value)}
-    className="border px-2 py-1 rounded w-full mb-2"
-  />
-  <input
-    type="file"
-    accept="image/*"
-    onChange={e => {
-      const file = e.target.files[0];
-      if (file) {
-        alert(`Bạn đã chọn ảnh: ${file.name}\nMô tả: ${actionDescription}`);
-        // Sau này gửi ảnh + mô tả đến backend
-      }
-    }}
-    className="border px-2 py-1 rounded w-full mb-2"
-  />
-  <button
-    className="bg-green-600 text-white px-4 py-1 rounded"
-    onClick={() => alert("Chức năng gửi minh chứng đang phát triển")}
-  >
-    Gửi minh chứng
-  </button>
-</div>
-
-
+      <div>
+        <h2 className="font-semibold mt-4">Ghi nhận hành động</h2>
+        <input
+          type="text"
+          placeholder="Mô tả hành động (e.g. Nhặt rác ở công viên)"
+          value={actionDescription}
+          onChange={(e) => setActionDescription(e.target.value)}
+          className="border px-2 py-1 rounded w-full mb-2"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              alert(`Bạn đã chọn ảnh: ${file.name}\nMô tả: ${actionDescription}`);
+              // Sau này gửi ảnh + mô tả đến backend
+            }
+          }}
+          className="border px-2 py-1 rounded w-full mb-2"
+        />
+        <button
+          className="bg-green-600 text-white px-4 py-1 rounded"
+          onClick={() => alert("Chức năng gửi minh chứng đang phát triển")}
+        >
+          Gửi minh chứng
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default App;
