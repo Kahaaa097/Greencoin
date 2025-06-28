@@ -142,7 +142,7 @@ function App() {
         {points !== null && <p className="mt-2">You have <b>{points}</b> GRC</p>}
       </div>
 
-  <div>
+ <div>
   <h2 className="font-semibold mt-4">Ghi nhận hành động</h2>
   <input
     type="text"
@@ -170,6 +170,7 @@ function App() {
     Gửi minh chứng
   </button>
 </div>
+
 
 
 export default App;
